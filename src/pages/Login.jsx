@@ -21,9 +21,22 @@ export default function Login() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [successMessage, setSuccessMessage] = useState("");
-
-    // Mouse movement state for 3D cursor parallax tracking
     const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+    const [loginType, setLoginType] = useState("user");
+
+    const handleLoginTypeChange = (type) => {
+        setLoginType(type);
+        setError(null);
+        if (type === "admin") {
+            setIdentifier("admin");
+            setPassword("admin123");
+            playSound("streak");
+        } else {
+            setIdentifier("");
+            setPassword("");
+            playSound("tick");
+        }
+    };
 
     const handleMouseMove = (e) => {
         const { clientX, clientY } = e;
@@ -113,6 +126,16 @@ export default function Login() {
                         >
                             ⚡ Enter Quiz App
                         </button>
+                        {user.role === "admin" && (
+                            <button
+                                type="button"
+                                className="primary-btn-large"
+                                style={{ background: "linear-gradient(135deg, #f59e0b 0%, #d97706 100%)" }}
+                                onClick={() => navigate("/admin")}
+                            >
+                                👑 Open Admin Studio
+                            </button>
+                        )}
                         <button
                             type="button"
                             className="secondary-btn"
@@ -191,8 +214,8 @@ export default function Login() {
                     </h1>
                     <p className="auth-subtitle">
                         {isRegisterMode
-                            ? "Sign up to create your account, then log in with your credentials to start playing!"
-                            : "Please log in with your username/email and password to enter."}
+                            ? "Sign up to create your player account, then log in with your credentials!"
+                            : "Select your account type below to log in."}
                     </p>
                 </div>
 
@@ -221,10 +244,51 @@ export default function Login() {
                     </button>
                 </div>
 
+                {/* Role Selector (Log In Mode Only) */}
+                {!isRegisterMode && (
+                    <div className="form-group" style={{ marginBottom: "1rem" }}>
+                        <label style={{ fontSize: "0.88rem", fontWeight: 700, marginBottom: "0.4rem", display: "block" }}>
+                            Account Type / Role:
+                        </label>
+                        <select
+                            className="form-select"
+                            value={loginType}
+                            onChange={(e) => handleLoginTypeChange(e.target.value)}
+                            style={{
+                                width: "100%",
+                                padding: "0.75rem 1rem",
+                                borderRadius: "12px",
+                                border: "1px solid var(--border-light)",
+                                background: "var(--surface-card-muted)",
+                                color: "var(--text-main)",
+                                fontWeight: 600,
+                                cursor: "pointer"
+                            }}
+                        >
+                            <option value="user">👤 Player / Normal User</option>
+                            <option value="admin">👑 Administrator (Auto-Fill Admin Credentials)</option>
+                        </select>
+
+                        {loginType === "admin" && (
+                            <div className="alert success-alert" style={{ marginTop: "0.75rem", fontSize: "0.85rem" }}>
+                                🔑 <strong>Admin Auto-Fill Active!</strong> Default credentials set to:
+                                <div style={{ marginTop: "4px", fontFamily: "monospace" }}>
+                                    Username: <strong>admin</strong> | Password: <strong>admin123</strong>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                )}
+
                 {/* Alert Messages */}
                 {error && (
                     <div className="alert error-alert">
                         <span>⚠️ {error}</span>
+                        {error.includes("backend") && (
+                            <div style={{ marginTop: "8px", fontSize: "0.85rem", opacity: 0.9 }}>
+                                💡 <strong>Quick Fix:</strong> Run <code>python src/backend/app.py</code> in your terminal or use <code>npm run backend</code> to start the backend server.
+                            </div>
+                        )}
                     </div>
                 )}
 

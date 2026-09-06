@@ -181,6 +181,26 @@ export default function Home() {
                 </div>
             </div>
 
+            {/* Word Puzzle Feature Card */}
+            <div className="word-puzzle-feature-card">
+                <div className="puzzle-card-left">
+                    <span className="puzzle-card-badge">🔤 NEW GAME MODE</span>
+                    <h3 className="puzzle-card-title">Word Unscramble Puzzles</h3>
+                    <p className="puzzle-card-desc">
+                        Test your vocabulary & anagram skills! Unscramble tech, science, and history terms with clue hints and instant letter placement.
+                    </p>
+                </div>
+                <button
+                    className="start-puzzle-btn"
+                    onClick={() => {
+                        playSound("streak");
+                        navigate("/word-puzzle");
+                    }}
+                >
+                    Play Word Puzzles 🔤 →
+                </button>
+            </div>
+
             {/* Quick Stats Banner */}
             <div className="stats-banner">
                 <div className="stat-card">

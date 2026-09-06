@@ -12,7 +12,20 @@ from models import (
     insert_sample_questions,
     register_user,
     authenticate_user,
-    get_user_by_id
+    get_user_by_id,
+    seed_default_admin,
+    get_all_users,
+    update_user_role,
+    delete_user,
+    delete_leaderboard_entry,
+    get_admin_analytics,
+    generate_ai_questions,
+    get_user_history_and_stats,
+    get_word_puzzles,
+    add_word_puzzle,
+    delete_word_puzzle,
+    generate_ai_word_puzzles,
+    insert_sample_word_puzzles
 )
 
 
@@ -166,6 +179,10 @@ def submit_score():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route("/api/health", methods=["GET"])
+def health_check():
+    return jsonify({"status": "ok", "message": "QuizSpark Backend Server is active"}), 200
+
 @app.route("/api/stats", methods=["GET"])
 def stats():
     try:
@@ -174,7 +191,141 @@ def stats():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+# ==============================================================================
+# ADMIN API ENDPOINTS
+# ==============================================================================
+
+@app.route("/api/admin/users", methods=["GET"])
+def admin_get_users():
+    try:
+        users_list = get_all_users()
+        return jsonify(users_list), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/api/admin/users/<int:user_id>/role", methods=["PATCH"])
+def admin_update_role(user_id):
+    try:
+        data = request.get_json() or {}
+        new_role = data.get("role")
+        success, msg = update_user_role(user_id, new_role)
+        if not success:
+            return jsonify({"error": msg}), 400
+        return jsonify({"message": msg}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/api/admin/users/<int:user_id>", methods=["DELETE"])
+def admin_delete_user(user_id):
+    try:
+        success = delete_user(user_id)
+        if not success:
+            return jsonify({"error": "User not found or already deleted"}), 404
+        return jsonify({"message": "User deleted successfully!"}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/api/admin/leaderboard/<int:entry_id>", methods=["DELETE"])
+def admin_delete_leaderboard_entry(entry_id):
+    try:
+        success = delete_leaderboard_entry(entry_id)
+        if not success:
+            return jsonify({"error": "Leaderboard entry not found or already deleted"}), 404
+        return jsonify({"message": "Leaderboard entry deleted successfully!"}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/api/admin/analytics", methods=["GET"])
+def admin_analytics():
+    try:
+        data = get_admin_analytics()
+        return jsonify(data), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/api/admin/generate-questions", methods=["POST"])
+def admin_generate_questions():
+    try:
+        data = request.get_json() or {}
+        topic = data.get("topic", "General Knowledge")
+        difficulty = data.get("difficulty", "Medium")
+        count = data.get("count", 3)
+
+        generated = generate_ai_questions(topic=topic, difficulty=difficulty, count=count)
+        return jsonify(generated), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/api/users/<int:user_id>/history", methods=["GET"])
+def get_user_history(user_id):
+    try:
+        data = get_user_history_and_stats(user_id)
+        if not data:
+            return jsonify({"error": "User not found"}), 404
+        return jsonify(data), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+# ==============================================================================
+# WORD PUZZLE API
+# ==============================================================================
+
+@app.route("/api/word-puzzles", methods=["GET"])
+def word_puzzles_list():
+    try:
+        category = request.args.get("category", "All")
+        difficulty = request.args.get("difficulty", "All")
+        limit = request.args.get("limit", default=10, type=int)
+
+        data = get_word_puzzles(category=category, difficulty=difficulty, limit=limit)
+        return jsonify(data), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/api/word-puzzles", methods=["POST"])
+def create_word_puzzle():
+    try:
+        data = request.get_json() or {}
+        word = (data.get("word") or "").strip()
+        clue = (data.get("clue") or "").strip()
+
+        if not word or len(word) < 2:
+            return jsonify({"error": "Target word must be at least 2 letters long."}), 400
+        if not clue:
+            return jsonify({"error": "A clue/definition is required."}), 400
+
+        add_word_puzzle(data)
+        return jsonify({"message": "Word puzzle created successfully!"}), 201
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/api/word-puzzles/<int:puzzle_id>", methods=["DELETE"])
+def remove_word_puzzle(puzzle_id):
+    try:
+        success = delete_word_puzzle(puzzle_id)
+        if not success:
+            return jsonify({"error": "Word puzzle not found or already deleted"}), 404
+        return jsonify({"message": "Word puzzle deleted successfully!"}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/api/admin/generate-word-puzzles", methods=["POST"])
+def admin_generate_word_puzzles():
+    try:
+        data = request.get_json() or {}
+        topic = data.get("topic", "General Knowledge")
+        difficulty = data.get("difficulty", "Medium")
+        count = data.get("count", 3)
+
+        generated = generate_ai_word_puzzles(topic=topic, difficulty=difficulty, count=count)
+        return jsonify(generated), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 if __name__ == "__main__":
     init_db()
     insert_sample_questions()
-    app.run(debug=True, port=5001)
+    insert_sample_word_puzzles()
+    seed_default_admin()
+    print("[QuizSpark] Backend Server running on http://127.0.0.1:5001")
+    app.run(debug=True, host="0.0.0.0", port=5001)

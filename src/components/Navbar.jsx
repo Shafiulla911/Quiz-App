@@ -6,7 +6,7 @@ import ThemeToggle from "./ThemeToggle";
 
 export default function Navbar() {
     const navigate = useNavigate();
-    const { user, isAuthenticated, logout } = useAuth();
+    const { user, isAuthenticated, isAdmin, logout } = useAuth();
     const [muted, setMuted] = useState(isSoundMuted());
     const [userMenuOpen, setUserMenuOpen] = useState(false);
 
@@ -38,17 +38,25 @@ export default function Navbar() {
                         ⚡ Play
                     </NavLink>
                     <NavLink
+                        to="/word-puzzle"
+                        className={({ isActive }) => `nav-link ${isActive ? "active" : ""}`}
+                    >
+                        🔤 Word Puzzle
+                    </NavLink>
+                    <NavLink
                         to="/leaderboard"
                         className={({ isActive }) => `nav-link ${isActive ? "active" : ""}`}
                     >
                         🏆 Leaderboard
                     </NavLink>
-                    <NavLink
-                        to="/add-question"
-                        className={({ isActive }) => `nav-link ${isActive ? "active" : ""}`}
-                    >
-                        ➕ Add Question
-                    </NavLink>
+                    {isAdmin && (
+                        <NavLink
+                            to="/admin"
+                            className={({ isActive }) => `nav-link ${isActive ? "active" : ""}`}
+                        >
+                            👑 Admin Panel
+                        </NavLink>
+                    )}
                 </nav>
             )}
 
@@ -86,14 +94,28 @@ export default function Navbar() {
                                 <div className="dropdown-user-header">
                                     <strong>{user.username}</strong>
                                     <span className="dropdown-email">{user.email}</span>
+                                    <div style={{ marginTop: "4px" }}>
+                                        <span className={`role-badge ${isAdmin ? "role-admin" : "role-user"}`}>
+                                            {isAdmin ? "👑 Admin" : "👤 User"}
+                                        </span>
+                                    </div>
                                 </div>
                                 <hr className="dropdown-divider" />
+                                {isAdmin && (
+                                    <Link
+                                        to="/admin"
+                                        className="dropdown-item"
+                                        onClick={() => setUserMenuOpen(false)}
+                                    >
+                                        👑 Admin Studio
+                                    </Link>
+                                )}
                                 <Link
-                                    to="/login"
+                                    to="/profile"
                                     className="dropdown-item"
                                     onClick={() => setUserMenuOpen(false)}
                                 >
-                                    👤 My Profile
+                                    👤 My Profile & History
                                 </Link>
                                 <button
                                     type="button"

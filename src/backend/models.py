@@ -230,7 +230,7 @@ def verify_password(stored_hash, salt, password):
     pwd_hash, _ = hash_password(password, salt)
     return pwd_hash == stored_hash
 
-def register_user(username, email, password):
+def register_user(username, email, password, role="user"):
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
 
@@ -244,11 +244,12 @@ def register_user(username, email, password):
         return None, "Username or email is already registered."
 
     pwd_hash, salt = hash_password(password)
-    ph_ins = "%s, %s, %s, %s" if USE_MYSQL else "?, ?, ?, ?"
+    user_role = role if role in ["admin", "user"] else "user"
+    ph_ins = "%s, %s, %s, %s, %s" if USE_MYSQL else "?, ?, ?, ?, ?"
     cursor.execute(f"""
-        INSERT INTO users (username, email, password_hash, salt)
+        INSERT INTO users (username, email, password_hash, salt, role)
         VALUES ({ph_ins})
-    """, (username, email, pwd_hash, salt))
+    """, (username, email, pwd_hash, salt, user_role))
     conn.commit()
 
     user_id = cursor.lastrowid
@@ -258,7 +259,8 @@ def register_user(username, email, password):
     return {
         "id": user_id,
         "username": username,
-        "email": email
+        "email": email,
+        "role": user_role
     }, None
 
 def authenticate_user(identifier, password):
@@ -284,6 +286,7 @@ def authenticate_user(identifier, password):
         "id": user["id"],
         "username": user["username"],
         "email": user["email"],
+        "role": user.get("role", "user"),
         "createdAt": str(user.get("created_at", ""))
     }, None
 
@@ -291,7 +294,7 @@ def get_user_by_id(user_id):
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
     ph = "%s" if USE_MYSQL else "?"
-    cursor.execute(f"SELECT id, username, email, created_at FROM users WHERE id = {ph}", (user_id,))
+    cursor.execute(f"SELECT id, username, email, role, created_at FROM users WHERE id = {ph}", (user_id,))
     user = cursor.fetchone()
     cursor.close()
     conn.close()
@@ -301,6 +304,7 @@ def get_user_by_id(user_id):
         "id": user["id"],
         "username": user["username"],
         "email": user["email"],
+        "role": user.get("role", "user"),
         "createdAt": str(user.get("created_at", ""))
     }
 
@@ -435,6 +439,519 @@ def get_app_stats():
         "averageScore": round(float(lb_stats.get("avg_score") or 0), 1)
     }
 
+
+def seed_default_admin():
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+    ph = "%s" if USE_MYSQL else "?"
+    cursor.execute(f"SELECT id FROM users WHERE LOWER(username) = LOWER({ph}) OR role = {ph}", ("admin", "admin"))
+    admin = cursor.fetchone()
+    cursor.close()
+    conn.close()
+
+    if not admin:
+        print("[QuizSpark] Seeding default admin account (admin / admin123)...")
+        register_user("admin", "admin@quizspark.com", "admin123", role="admin")
+
+def get_all_users():
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute("""
+        SELECT u.id, u.username, u.email, u.role, u.created_at,
+               COUNT(l.id) as games_played
+        FROM users u
+        LEFT JOIN leaderboard l ON u.id = l.user_id
+        GROUP BY u.id, u.username, u.email, u.role, u.created_at
+        ORDER BY u.id ASC
+    """)
+    rows = cursor.fetchall()
+    cursor.close()
+    conn.close()
+    return [{
+        "id": r["id"],
+        "username": r["username"],
+        "email": r["email"],
+        "role": r.get("role", "user"),
+        "createdAt": str(r.get("created_at", "")),
+        "gamesPlayed": r.get("games_played", 0)
+    } for r in rows]
+
+def update_user_role(user_id, role):
+    if role not in ["admin", "user"]:
+        return False, "Invalid role. Must be 'admin' or 'user'."
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    ph = "%s" if USE_MYSQL else "?"
+    cursor.execute(f"UPDATE users SET role = {ph} WHERE id = {ph}", (role, user_id))
+    conn.commit()
+    updated = cursor.rowcount > 0
+    cursor.close()
+    conn.close()
+    if updated:
+        return True, "User role updated successfully!"
+    return False, "User not found."
+
+def delete_user(user_id):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    ph = "%s" if USE_MYSQL else "?"
+    cursor.execute(f"DELETE FROM leaderboard WHERE user_id = {ph}", (user_id,))
+    cursor.execute(f"DELETE FROM users WHERE id = {ph}", (user_id,))
+    conn.commit()
+    deleted = cursor.rowcount > 0
+    cursor.close()
+    conn.close()
+    return deleted
+
+def delete_leaderboard_entry(entry_id):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    ph = "%s" if USE_MYSQL else "?"
+    cursor.execute(f"DELETE FROM leaderboard WHERE id = {ph}", (entry_id,))
+    conn.commit()
+    deleted = cursor.rowcount > 0
+    cursor.close()
+    conn.close()
+    return deleted
+
+def get_admin_analytics():
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    cursor.execute("SELECT COUNT(*) as total_users, SUM(CASE WHEN role = 'admin' THEN 1 ELSE 0 END) as total_admins FROM users")
+    u_stats = cursor.fetchone() or {}
+
+    cursor.execute("SELECT COUNT(*) as total_questions FROM questions")
+    q_stats = cursor.fetchone() or {}
+
+    cursor.execute("SELECT category, COUNT(*) as count FROM questions GROUP BY category")
+    cat_rows = cursor.fetchall()
+
+    cursor.execute("SELECT COUNT(*) as total_games, AVG(percentage) as avg_accuracy FROM leaderboard")
+    lb_stats = cursor.fetchone() or {}
+
+    cursor.close()
+    conn.close()
+
+    return {
+        "totalUsers": u_stats.get("total_users") or 0,
+        "totalAdmins": u_stats.get("total_admins") or 0,
+        "totalQuestions": q_stats.get("total_questions") or 0,
+        "totalGamesPlayed": lb_stats.get("total_games") or 0,
+        "averageAccuracy": round(float(lb_stats.get("avg_accuracy") or 0), 1),
+        "categories": [{"category": r["category"], "count": r["count"]} for r in cat_rows]
+    }
+
+
+def generate_ai_questions(topic="General Knowledge", difficulty="Medium", count=3):
+    count = max(1, min(int(count), 10))
+    clean_topic = (topic or "General Knowledge").strip()
+    
+    # Pre-crafted dynamic templates per domain with randomized variations
+    topic_lower = clean_topic.lower()
+    
+    templates = []
+    
+    if "python" in topic_lower or "code" in topic_lower or "program" in topic_lower:
+        templates = [
+            {
+                "question": f"In {clean_topic}, which built-in function returns the length of an object?",
+                "options": ["len()", "size()", "count()", "length()"],
+                "correct_answer": "len()",
+                "explanation": f"The len() function in {clean_topic} returns the total number of items in an object."
+            },
+            {
+                "question": f"Which keyword is used to define a function or method in {clean_topic}?",
+                "options": ["def", "func", "function", "define"],
+                "correct_answer": "def",
+                "explanation": f"The 'def' keyword introduces a new function definition in {clean_topic}."
+            },
+            {
+                "question": f"What data structure in {clean_topic} stores key-value pairs and guarantees element uniqueness for keys?",
+                "options": ["Dictionary (dict)", "List (list)", "Tuple (tuple)", "Array (array)"],
+                "correct_answer": "Dictionary (dict)",
+                "explanation": f"Dictionaries in {clean_topic} store mappings of unique keys to associated values."
+            },
+            {
+                "question": f"Which operator is used for integer floor division in {clean_topic}?",
+                "options": ["//", "/", "%", "**"],
+                "correct_answer": "//",
+                "explanation": "Floor division // divides two numbers and rounds down to the nearest whole integer."
+            },
+            {
+                "question": f"What module in {clean_topic} is commonly used for working with regular expressions?",
+                "options": ["re", "regex", "regexp", "string"],
+                "correct_answer": "re",
+                "explanation": "The 're' module provides regular expression matching operations."
+            }
+        ]
+    elif "space" in topic_lower or "planet" in topic_lower or "astronomy" in topic_lower or "science" in topic_lower:
+        templates = [
+            {
+                "question": f"In astronomy regarding {clean_topic}, what is the celestial object with a gravitational pull so strong that even light cannot escape?",
+                "options": ["Black Hole", "Neutron Star", "White Dwarf", "Supernova"],
+                "correct_answer": "Black Hole",
+                "explanation": "A black hole is a region of spacetime where gravity is so intense that nothing can escape it."
+            },
+            {
+                "question": f"Which planet in our solar system has the most extensive ring system?",
+                "options": ["Saturn", "Jupiter", "Uranus", "Neptune"],
+                "correct_answer": "Saturn",
+                "explanation": "Saturn is famous for its prominent ring system composed mostly of ice particles and rocky debris."
+            },
+            {
+                "question": f"What phenomenon occurs when the Moon passes directly between the Earth and the Sun?",
+                "options": ["Solar Eclipse", "Lunar Eclipse", "Equinox", "Solstice"],
+                "correct_answer": "Solar Eclipse",
+                "explanation": "A solar eclipse occurs when the Moon moves in front of the Sun from Earth's perspective."
+            },
+            {
+                "question": f"What unit of distance in astronomy is equivalent to approximately 9.46 trillion kilometers?",
+                "options": ["Light-year", "Astronomical Unit (AU)", "Parsec", "Gigameter"],
+                "correct_answer": "Light-year",
+                "explanation": "A light-year is the distance that light travels in a vacuum in one Julian year."
+            }
+        ]
+    elif "history" in topic_lower or "war" in topic_lower or "ancient" in topic_lower:
+        templates = [
+            {
+                "question": f"In historical studies on {clean_topic}, which ancient civilization built the Great Pyramids of Giza?",
+                "options": ["Ancient Egyptians", "Mesopotamians", "Ancient Greeks", "Romans"],
+                "correct_answer": "Ancient Egyptians",
+                "explanation": "The Great Pyramids were constructed by the Ancient Egyptians during the Old Kingdom period."
+            },
+            {
+                "question": f"Which historical global conflict ended in 1945 following the surrender of Axis forces?",
+                "options": ["World War II", "World War I", "The Cold War", "The Seven Years' War"],
+                "correct_answer": "World War II",
+                "explanation": "World War II officially ended in September 1945."
+            },
+            {
+                "question": f"Who was the famous military leader and emperor of France who expanded control over continental Europe in the early 19th century?",
+                "options": ["Napoleon Bonaparte", "Julius Caesar", "Charlemagne", "King Louis XIV"],
+                "correct_answer": "Napoleon Bonaparte",
+                "explanation": "Napoleon Bonaparte dominated European and global affairs for over a decade."
+            }
+        ]
+    else:
+        # Fallback dynamic trivia generation engine for any custom user prompt topic
+        templates = [
+            {
+                "question": f"What is a fundamental principle or key concept associated with {clean_topic}?",
+                "options": [
+                    f"Core Foundations of {clean_topic}",
+                    f"Secondary Analysis of {clean_topic}",
+                    f"Linear Transformation of {clean_topic}",
+                    f"Random Hypothesis of {clean_topic}"
+                ],
+                "correct_answer": f"Core Foundations of {clean_topic}",
+                "explanation": f"Understanding the core foundations is essential to mastering {clean_topic}."
+            },
+            {
+                "question": f"When examining {clean_topic} at a {difficulty} level, which metric is most widely evaluated?",
+                "options": ["Efficiency & Accuracy", "Total Cost", "Surface Area", "Color Palette"],
+                "correct_answer": "Efficiency & Accuracy",
+                "explanation": f"Evaluating efficiency and accuracy provides actionable insights into {clean_topic}."
+            },
+            {
+                "question": f"Which domain or discipline is most closely connected with advancements in {clean_topic}?",
+                "options": ["Applied Science & Technology", "Astrology", "Alchemy", "Mythology"],
+                "correct_answer": "Applied Science & Technology",
+                "explanation": f"Applied Science & Technology directly drives innovation in {clean_topic}."
+            },
+            {
+                "question": f"What is considered a primary best practice when working with {clean_topic}?",
+                "options": [
+                    "Structured Analysis & Modular Design",
+                    "Ignoring Documentation",
+                    "Random Guesswork",
+                    "Unverified Assumptions"
+                ],
+                "correct_answer": "Structured Analysis & Modular Design",
+                "explanation": "Modular design and systematic analysis prevent errors and improve reproducibility."
+            },
+            {
+                "question": f"In modern applications of {clean_topic}, what primary advantage does optimization offer?",
+                "options": [
+                    "Enhanced Speed & Reliability",
+                    "Increased Latency",
+                    "Higher Error Rates",
+                    "Manual Overdrive"
+                ],
+                "correct_answer": "Enhanced Speed & Reliability",
+                "explanation": "Optimization maximizes performance while maintaining overall stability."
+            }
+        ]
+
+    random.shuffle(templates)
+    selected = templates[:count]
+    
+    # Format each question with category & difficulty metadata
+    results = []
+    for t in selected:
+        opts = list(t["options"])
+        random.shuffle(opts)
+        results.append({
+            "category": clean_topic,
+            "difficulty": difficulty.capitalize(),
+            "question": t["question"],
+            "options": opts,
+            "correctAnswer": t["correct_answer"],
+            "explanation": t["explanation"]
+        })
+        
+    return results
+
+def get_user_history_and_stats(user_id):
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+    ph = "%s" if USE_MYSQL else "?"
+    
+    # User Profile Info
+    cursor.execute(f"SELECT id, username, email, role, created_at FROM users WHERE id = {ph}", (user_id,))
+    user_row = cursor.fetchone()
+    
+    if not user_row:
+        cursor.close()
+        conn.close()
+        return None
+        
+    # Game History
+    cursor.execute(f"""
+        SELECT id, player_name, score, total_questions, percentage, category, played_at
+        FROM leaderboard
+        WHERE user_id = {ph}
+        ORDER BY played_at DESC
+    """, (user_id,))
+    history_rows = cursor.fetchall()
+    
+    # Statistics calculations
+    total_games = len(history_rows)
+    avg_accuracy = round(sum(r["percentage"] for r in history_rows) / max(total_games, 1), 1) if total_games > 0 else 0
+    personal_best = max((r["percentage"] for r in history_rows), default=0)
+    
+    # Favorite Category
+    cat_counts = {}
+    for r in history_rows:
+        cat = r.get("category", "General Knowledge")
+        cat_counts[cat] = cat_counts.get(cat, 0) + 1
+        
+    fav_category = max(cat_counts, key=cat_counts.get) if cat_counts else "None Yet"
+    
+    cursor.close()
+    conn.close()
+    
+    return {
+        "user": {
+            "id": user_row["id"],
+            "username": user_row["username"],
+            "email": user_row["email"],
+            "role": user_row.get("role", "user"),
+            "createdAt": str(user_row.get("created_at", ""))
+        },
+        "stats": {
+            "totalGamesPlayed": total_games,
+            "averageAccuracy": avg_accuracy,
+            "personalBest": personal_best,
+            "favoriteCategory": fav_category
+        },
+        "history": [{
+            "id": r["id"],
+            "playerName": r["player_name"],
+            "score": r["score"],
+            "totalQuestions": r["total_questions"],
+            "percentage": r["percentage"],
+            "category": r["category"],
+            "playedAt": str(r.get("played_at", ""))
+        } for r in history_rows]
+    }
+
+
+SAMPLE_WORD_PUZZLES = [
+    {
+        "word": "ALGORITHM",
+        "clue": "A step-by-step procedure or set of rules for solving a problem.",
+        "category": "Programming & Tech",
+        "difficulty": "Medium"
+    },
+    {
+        "word": "VARIABLE",
+        "clue": "A named storage location in programming that holds data which can change.",
+        "category": "Programming & Tech",
+        "difficulty": "Easy"
+    },
+    {
+        "word": "RECURSION",
+        "clue": "A method where the solution to a problem depends on smaller instances of the same problem (function calling itself).",
+        "category": "Programming & Tech",
+        "difficulty": "Hard"
+    },
+    {
+        "word": "SUPERNOVA",
+        "clue": "A colossal explosion that occurs at the end of a massive star's life cycle.",
+        "category": "Science & Space",
+        "difficulty": "Medium"
+    },
+    {
+        "word": "GRAVITY",
+        "clue": "The fundamental universal force that attracts objects with mass toward one another.",
+        "category": "Science & Space",
+        "difficulty": "Easy"
+    },
+    {
+        "word": "PYRAMID",
+        "clue": "A monumental stone structure with triangular sides built in ancient Egypt.",
+        "category": "History & Arts",
+        "difficulty": "Easy"
+    },
+    {
+        "word": "CANBERRA",
+        "clue": "The purpose-built capital city of Australia.",
+        "category": "World Geography",
+        "difficulty": "Medium"
+    },
+    {
+        "word": "KILIMANJARO",
+        "clue": "The highest dormant volcanic mountain peak in Africa.",
+        "category": "World Geography",
+        "difficulty": "Hard"
+    }
+]
+
+def scramble_word(word):
+    chars = list(word.upper())
+    if len(chars) <= 1:
+        return chars
+    for _ in range(10):
+        random.shuffle(chars)
+        if "".join(chars) != word.upper():
+            break
+    return chars
+
+def get_word_puzzles(category=None, difficulty=None, limit=10):
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+    
+    query = "SELECT * FROM word_puzzles WHERE 1=1"
+    params = []
+
+    if category and category.lower() != "all":
+        query += " AND LOWER(category) = LOWER(%s)" if USE_MYSQL else " AND LOWER(category) = LOWER(?)"
+        params.append(category)
+
+    if difficulty and difficulty.lower() != "all":
+        query += " AND LOWER(difficulty) = LOWER(%s)" if USE_MYSQL else " AND LOWER(difficulty) = LOWER(?)"
+        params.append(difficulty)
+
+    cursor.execute(query, tuple(params) if params else ())
+    rows = cursor.fetchall()
+    cursor.close()
+    conn.close()
+
+    puzzles = []
+    for r in rows:
+        target = r["word"].strip().upper()
+        puzzles.append({
+            "id": r["id"],
+            "word": target,
+            "clue": r["clue"],
+            "category": r.get("category", "General Knowledge"),
+            "difficulty": r.get("difficulty", "Medium"),
+            "scrambled": scramble_word(target)
+        })
+        
+    random.shuffle(puzzles)
+    if limit and limit > 0:
+        puzzles = puzzles[:limit]
+        
+    return puzzles
+
+def add_word_puzzle(data):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    ph = "%s, %s, %s, %s" if USE_MYSQL else "?, ?, ?, ?"
+    cursor.execute(f"""
+        INSERT INTO word_puzzles (word, clue, category, difficulty)
+        VALUES ({ph})
+    """, (
+        data["word"].strip().upper(),
+        data["clue"].strip(),
+        data.get("category", "General Knowledge"),
+        data.get("difficulty", "Medium")
+    ))
+    conn.commit()
+    cursor.close()
+    conn.close()
+    return True
+
+def delete_word_puzzle(puzzle_id):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    ph = "%s" if USE_MYSQL else "?"
+    cursor.execute(f"DELETE FROM word_puzzles WHERE id = {ph}", (puzzle_id,))
+    conn.commit()
+    deleted = cursor.rowcount > 0
+    cursor.close()
+    conn.close()
+    return deleted
+
+def generate_ai_word_puzzles(topic="General Knowledge", difficulty="Medium", count=3):
+    count = max(1, min(int(count), 10))
+    clean_topic = (topic or "General Knowledge").strip()
+    topic_lower = clean_topic.lower()
+
+    pool = []
+    if "code" in topic_lower or "python" in topic_lower or "tech" in topic_lower:
+        pool = [
+            {"word": "FUNCTION", "clue": "A block of organized, reusable code used to perform a single action."},
+            {"word": "COMPILER", "clue": "A program that translates source code into machine code."},
+            {"word": "DATABASE", "clue": "An organized collection of structured data stored electronically."},
+            {"word": "BOOLEAN", "clue": "A data type that can hold one of two values: True or False."},
+            {"word": "OVERFLOW", "clue": "Condition that occurs when a calculation produces a result larger than memory capacity."}
+        ]
+    elif "space" in topic_lower or "science" in topic_lower or "planet" in topic_lower:
+        pool = [
+            {"word": "ASTRONAUT", "clue": "A person trained to travel in a spacecraft into outer space."},
+            {"word": "TELESCOPE", "clue": "An optical instrument used to observe distant celestial objects."},
+            {"word": "ATMOSPHERE", "clue": "The layer of gases surrounding a planet or cosmic body."},
+            {"word": "ECLIPSE", "clue": "An astronomical event where one celestial body passes into the shadow of another."}
+        ]
+    else:
+        pool = [
+            {"word": "CHAMPION", "clue": "A person or player who has defeated all rivals in a competition."},
+            {"word": "DISCOVERY", "clue": "The act of detecting or learning something new for the first time."},
+            {"word": "STRATEGY", "clue": "A plan of action designed to achieve a long-term goal."},
+            {"word": "ADVENTURE", "clue": "An exciting, daring, or remarkable experience."}
+        ]
+
+    random.shuffle(pool)
+    selected = pool[:count]
+
+    return [{
+        "word": item["word"],
+        "clue": item["clue"],
+        "category": clean_topic,
+        "difficulty": difficulty.capitalize(),
+        "scrambled": scramble_word(item["word"])
+    } for item in selected]
+
+def insert_sample_word_puzzles():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT COUNT(*) FROM word_puzzles")
+    count_row = cursor.fetchone()
+    count = count_row[0] if isinstance(count_row, (tuple, list)) else (count_row.get("COUNT(*)") if isinstance(count_row, dict) else 0)
+
+    if count < 5:
+        ph = "%s, %s, %s, %s" if USE_MYSQL else "?, ?, ?, ?"
+        for p in SAMPLE_WORD_PUZZLES:
+            cursor.execute(f"""
+                INSERT INTO word_puzzles (word, clue, category, difficulty)
+                VALUES ({ph})
+            """, (p["word"], p["clue"], p["category"], p["difficulty"]))
+        conn.commit()
+    cursor.close()
+    conn.close()
 
 def insert_sample_questions():
     conn = get_db_connection()

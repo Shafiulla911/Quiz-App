@@ -73,9 +73,15 @@ def init_db():
                 email VARCHAR(100) NOT NULL UNIQUE,
                 password_hash VARCHAR(255) NOT NULL,
                 salt VARCHAR(64) NOT NULL,
+                role VARCHAR(50) NOT NULL DEFAULT 'user',
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         """)
+
+        try:
+            cursor.execute("ALTER TABLE users ADD COLUMN role VARCHAR(50) NOT NULL DEFAULT 'user'")
+        except Exception:
+            pass
 
         # Questions table
         cursor.execute("""
@@ -123,6 +129,18 @@ def init_db():
             cursor.execute("ALTER TABLE leaderboard ADD COLUMN user_id INT NULL")
         except Exception:
             pass
+
+        # Word Puzzles Table
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS word_puzzles (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                word VARCHAR(100) NOT NULL,
+                clue TEXT NOT NULL,
+                category VARCHAR(100) NOT NULL DEFAULT 'General Knowledge',
+                difficulty VARCHAR(50) NOT NULL DEFAULT 'Medium',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
     else:
         # SQLite
         cursor.execute("""
@@ -132,9 +150,15 @@ def init_db():
                 email TEXT NOT NULL UNIQUE,
                 password_hash TEXT NOT NULL,
                 salt TEXT NOT NULL,
+                role TEXT NOT NULL DEFAULT 'user',
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         """)
+        try:
+            cursor.execute("ALTER TABLE users ADD COLUMN role TEXT NOT NULL DEFAULT 'user'")
+        except Exception:
+            pass
+
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS questions (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -160,6 +184,16 @@ def init_db():
                 percentage INTEGER NOT NULL,
                 category TEXT NOT NULL,
                 played_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS word_puzzles (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                word TEXT NOT NULL,
+                clue TEXT NOT NULL,
+                category TEXT NOT NULL DEFAULT 'General Knowledge',
+                difficulty TEXT NOT NULL DEFAULT 'Medium',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         """)
 
