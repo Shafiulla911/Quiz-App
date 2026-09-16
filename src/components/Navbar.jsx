@@ -1,12 +1,14 @@
 import { useState, useEffect, useRef } from "react";
-import { NavLink, Link, useNavigate } from "react-router-dom";
+import { NavLink, Link, useNavigate, useLocation } from "react-router-dom";
 import { isSoundMuted, toggleSound, playSound } from "../services/sound";
 import { useAuth } from "../context/AuthContext";
 import ThemeToggle from "./ThemeToggle";
 
 export default function Navbar() {
     const navigate = useNavigate();
+    const location = useLocation();
     const { user, isAuthenticated, isAdmin, logout } = useAuth();
+    const isOnLoginPage = location.pathname === "/login";
     const [muted, setMuted] = useState(isSoundMuted());
     const [userMenuOpen, setUserMenuOpen] = useState(false);
     const menuRef = useRef(null);
@@ -158,9 +160,11 @@ export default function Navbar() {
                         )}
                     </div>
                 ) : (
-                    <Link to="/login" className="login-nav-btn">
-                        Sign In / Register
-                    </Link>
+                    !isOnLoginPage && (
+                        <Link to="/login" className="login-nav-btn">
+                            Sign In / Register
+                        </Link>
+                    )
                 )}
             </div>
         </header>
