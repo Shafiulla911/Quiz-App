@@ -693,12 +693,12 @@
   width: 100%;
   max-width: 480px;
 
-  /* Semi-Transparent Glass Base */
-  background: rgba(15, 23, 42, 0.6);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  /* Translucent Frosted Glass Base */
+  background: rgba(15, 23, 42, 0.5);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
   
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.18);
   border-radius: 24px;
   padding: 2.5rem 2.25rem;
   
@@ -708,7 +708,9 @@
 }
 
 [data-theme="light"] .auth-card {
-  background: rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
   border: 1px solid rgba(255, 255, 255, 0.8);
   box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
 }
