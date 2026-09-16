@@ -706,21 +706,26 @@
   width: 100%;
   max-width: 480px;
 
-  /* Translucent background + heavy backdrop blur */
-  background: rgba(15, 23, 42, 0.45);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: 24px;
+  /* Frosted glass — soft white-tinted transparent fill */
+  background: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+
+  /* Uniform thin white border */
+  border: 1.5px solid rgba(255, 255, 255, 0.25);
+  border-radius: 20px;
   padding: 2.5rem 2.25rem;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+
+  /* Gentle shadow for depth */
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
 }
 
 [data-theme="light"] .auth-card {
-  background: rgba(255, 255, 255, 0.45);
-  border: 1px solid rgba(255, 255, 255, 0.5);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
+  background: rgba(255, 255, 255, 0.25);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1.5px solid rgba(255, 255, 255, 0.45);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
 }
 
 .auth-header {
