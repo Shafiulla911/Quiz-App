@@ -598,16 +598,14 @@
 :root .ring-1 {
   width: 500px;
   height: 500px;
-  border: 3px dashed rgba(99, 102, 241, 0.65);
-  box-shadow: 0 0 35px rgba(99, 102, 241, 0.30), inset 0 0 25px rgba(99, 102, 241, 0.15);
+  border: 2px dashed rgba(99, 102, 241, 0.3);
 }
 
 [data-theme="light"] .ring-2,
 :root .ring-2 {
   width: 750px;
   height: 750px;
-  border: 2.5px solid rgba(236, 72, 153, 0.55);
-  box-shadow: 0 0 45px rgba(236, 72, 153, 0.25), inset 0 0 30px rgba(236, 72, 153, 0.12);
+  border: 2px solid rgba(236, 72, 153, 0.25);
   animation-delay: 2s;
 }
 
@@ -615,15 +613,13 @@
 [data-theme="dark"] .ring-1 {
   width: 550px;
   height: 550px;
-  border: 2px dashed rgba(129, 140, 248, 0.30);
-  box-shadow: 0 0 40px rgba(99, 102, 241, 0.15);
+  border: 2px dashed rgba(129, 140, 248, 0.2);
 }
 
 [data-theme="dark"] .ring-2 {
   width: 800px;
   height: 800px;
-  border: 1.5px solid rgba(56, 189, 248, 0.25);
-  box-shadow: 0 0 50px rgba(56, 189, 248, 0.12);
+  border: 1.5px solid rgba(56, 189, 248, 0.18);
   animation-delay: 2s;
 }
 
@@ -634,11 +630,11 @@
   }
   50% {
     transform: translate(-50%, -50%) scale(1.08) rotate(180deg);
-    opacity: 0.9;
+    opacity: 0.8;
   }
   100% {
     transform: translate(-50%, -50%) scale(0.96) rotate(360deg);
-    opacity: 0.6;
+    opacity: 0.5;
   }
 }
 
@@ -655,12 +651,10 @@
 [data-theme="light"] .light-crystal,
 :root .light-crystal {
   color: #6366f1;
-  text-shadow: 0 0 10px rgba(99, 102, 241, 0.4);
 }
 
 [data-theme="dark"] .light-crystal {
-  color: #ffffff;
-  text-shadow: 0 0 12px rgba(255, 255, 255, 0.9), 0 0 20px rgba(56, 189, 248, 0.6);
+  color: #94a3b8;
 }
 
 .c1 { top: 15%; left: 18%; animation-delay: 0s; }
@@ -677,7 +671,7 @@
   }
   50% {
     transform: translateY(-15px) scale(1.25);
-    opacity: 1;
+    opacity: 0.9;
   }
   100% {
     transform: translateY(10px) scale(0.9);
@@ -699,36 +693,30 @@
   width: 100%;
   max-width: 480px;
 
-  /* Semi-Transparent Glass Base so background elements shine through */
-  background: rgba(15, 23, 42, 0.55);
-  backdrop-filter: blur(18px) saturate(160%);
-  -webkit-backdrop-filter: blur(18px) saturate(160%);
+  /* Semi-Transparent Glass Base */
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   
-  border: 1px solid rgba(255, 255, 255, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: 24px;
   padding: 2.5rem 2.25rem;
   
-  /* Subtle Depth Shadow without neon glow */
-  box-shadow: 
-    0 15px 35px -5px rgba(0, 0, 0, 0.45),
-    inset 0 1px 1px 0 rgba(255, 255, 255, 0.2);
+  /* Standard Subtle Card Shadow without glow */
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
   transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
 }
 
 [data-theme="light"] .auth-card {
-  background: rgba(255, 255, 255, 0.65);
-  border: 1px solid rgba(255, 255, 255, 0.7);
-  box-shadow: 
-    0 15px 35px -5px rgba(15, 23, 42, 0.1),
-    inset 0 1px 2px 0 rgba(255, 255, 255, 0.8);
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
 }
 
 .auth-card:hover {
   transform: translateY(-2px);
-  border-color: rgba(255, 255, 255, 0.28);
-  box-shadow: 
-    0 20px 40px -5px rgba(0, 0, 0, 0.55),
-    inset 0 1px 1px 0 rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.25);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.4);
 }
 
 .auth-header {
