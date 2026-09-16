@@ -686,39 +686,28 @@
   100% { opacity: 1;    transform: scale(1.05) translate(6px, -5px); }
 }
 
-/* Glassmorphism Card Effect (Clean Translucent Glass) */
+/* Clean Pure Frosted Glass Card */
 .auth-card {
   position: relative;
   z-index: 2;
   width: 100%;
   max-width: 480px;
 
-  /* Translucent Frosted Glass Base */
-  background: rgba(15, 23, 42, 0.5);
-  backdrop-filter: blur(24px) saturate(180%);
-  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  /* Translucent background + heavy backdrop blur */
+  background: rgba(15, 23, 42, 0.45);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   
-  border: 1px solid rgba(255, 255, 255, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: 24px;
   padding: 2.5rem 2.25rem;
-  
-  /* Standard Subtle Card Shadow without glow */
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
-  transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
 }
 
 [data-theme="light"] .auth-card {
-  background: rgba(255, 255, 255, 0.6);
-  backdrop-filter: blur(24px) saturate(180%);
-  -webkit-backdrop-filter: blur(24px) saturate(180%);
-  border: 1px solid rgba(255, 255, 255, 0.8);
-  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
-}
-
-.auth-card:hover {
-  transform: translateY(-2px);
-  border-color: rgba(255, 255, 255, 0.25);
-  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.4);
+  background: rgba(255, 255, 255, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
 }
 
 .auth-header {
