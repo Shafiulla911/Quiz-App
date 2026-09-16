@@ -3643,6 +3643,400 @@
 }
 
 /* ==========================================================================
+   GAME PICKER & INNOVATIVE QUIZ CONFIG STYLES
+   ========================================================================== */
+
+.game-picker-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem;
+  margin: 2rem auto;
+  max-width: 960px;
+  width: 100%;
+}
+
+.game-picker-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+  padding: 2rem 1.75rem;
+  border-radius: 24px;
+  background: var(--surface-card);
+  border: 2px solid var(--border-light);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.08);
+  cursor: pointer;
+  transition: all 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+  overflow: hidden;
+  color: var(--text-main);
+  text-decoration: none;
+}
+
+.game-picker-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 6px;
+  background: linear-gradient(90deg, var(--primary), var(--secondary));
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.quiz-picker-card:hover::before {
+  opacity: 1;
+  background: linear-gradient(90deg, #6366f1, #ec4899);
+}
+
+.puzzle-picker-card:hover::before {
+  opacity: 1;
+  background: linear-gradient(90deg, #10b981, #3b82f6);
+}
+
+.game-picker-card:hover {
+  transform: translateY(-8px);
+  border-color: var(--primary);
+  box-shadow: 0 20px 40px rgba(99, 102, 241, 0.2);
+}
+
+.game-picker-icon {
+  font-size: 3rem;
+  margin-bottom: 1.25rem;
+  width: 72px;
+  height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 20px;
+  background: var(--primary-light);
+  transition: transform 0.3s ease;
+}
+
+.game-picker-card:hover .game-picker-icon {
+  transform: scale(1.1) rotate(6deg);
+}
+
+.puzzle-picker-card .game-picker-icon {
+  background: rgba(16, 185, 129, 0.15);
+}
+
+.game-picker-info {
+  flex: 1;
+  margin-bottom: 1.5rem;
+}
+
+.game-picker-title {
+  font-size: 1.6rem;
+  font-weight: 800;
+  margin-bottom: 0.6rem;
+  color: var(--text-main);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.game-picker-desc {
+  font-size: 0.95rem;
+  line-height: 1.55;
+  color: var(--text-muted);
+}
+
+.game-picker-arrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #ffffff;
+  background: linear-gradient(135deg, var(--primary), var(--primary-hover));
+  padding: 0.75rem 1.6rem;
+  border-radius: 14px;
+  transition: all 0.25s ease;
+  box-shadow: 0 4px 15px rgba(99, 102, 241, 0.35);
+}
+
+.puzzle-picker-card .game-picker-arrow {
+  background: linear-gradient(135deg, #10b981, #059669);
+  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.35);
+}
+
+.game-picker-card:hover .game-picker-arrow {
+  transform: translateX(4px);
+}
+
+/* Back Button to Game Picker */
+.back-to-picker-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--surface-card);
+  border: 1.5px solid var(--border-light);
+  color: var(--text-main);
+  padding: 0.6rem 1.25rem;
+  border-radius: 12px;
+  font-size: 0.92rem;
+  font-weight: 700;
+  cursor: pointer;
+  margin-bottom: 1.25rem;
+  transition: all 0.25s ease;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.back-to-picker-btn:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+  transform: translateX(-3px);
+}
+
+/* Category Grid & Chips */
+.category-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 0.85rem;
+  margin-top: 0.5rem;
+}
+
+.category-chip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 1rem 0.85rem;
+  border-radius: 16px;
+  background: var(--surface-card-muted);
+  border: 2px solid var(--border-light);
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
+  color: var(--text-main);
+  gap: 0.35rem;
+}
+
+.category-chip:hover {
+  border-color: var(--primary);
+  transform: translateY(-2px);
+  background: var(--surface-card);
+}
+
+.category-chip.selected {
+  border-color: var(--primary);
+  background: var(--primary-light);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25);
+  font-weight: 700;
+}
+
+.cat-icon {
+  font-size: 1.8rem;
+  margin-bottom: 0.2rem;
+}
+
+.cat-name {
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.cat-count {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.selected-tag {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--primary);
+  background: var(--primary-light);
+  padding: 0.25rem 0.65rem;
+  border-radius: 9999px;
+  float: right;
+}
+
+/* Difficulty Cards Row */
+.difficulty-cards-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.difficulty-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem 0.5rem;
+  border-radius: 14px;
+  background: var(--surface-card-muted);
+  border: 2px solid var(--border-light);
+  cursor: pointer;
+  transition: all 0.25s ease;
+  color: var(--text-main);
+  gap: 0.4rem;
+}
+
+.difficulty-card:hover {
+  border-color: var(--diff-color, var(--primary));
+  transform: translateY(-2px);
+}
+
+.difficulty-card.diff-selected {
+  border-color: var(--diff-color, var(--primary));
+  background: var(--diff-bg, var(--primary-light));
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+  font-weight: 700;
+}
+
+.diff-emoji {
+  font-size: 1.6rem;
+}
+
+.diff-label {
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+/* Question Count Cards */
+.qcount-cards-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.qcount-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem 0.5rem;
+  border-radius: 14px;
+  background: var(--surface-card-muted);
+  border: 2px solid var(--border-light);
+  cursor: pointer;
+  transition: all 0.25s ease;
+  color: var(--text-main);
+  gap: 0.2rem;
+}
+
+.qcount-card:hover {
+  border-color: var(--primary);
+  transform: translateY(-2px);
+}
+
+.qcount-card.qcount-selected {
+  border-color: var(--primary);
+  background: var(--primary-light);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+}
+
+.qcount-emoji {
+  font-size: 1.4rem;
+}
+
+.qcount-num {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: var(--primary);
+}
+
+.qcount-label {
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.qcount-desc {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+/* Timer Mode Buttons */
+.timer-toggle-row {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.timer-mode-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0.9rem 0.75rem;
+  border-radius: 14px;
+  background: var(--surface-card-muted);
+  border: 2px solid var(--border-light);
+  cursor: pointer;
+  transition: all 0.25s ease;
+  color: var(--text-main);
+  gap: 0.25rem;
+}
+
+.timer-mode-btn:hover {
+  border-color: var(--primary);
+}
+
+.timer-mode-btn.timer-active {
+  border-color: var(--primary);
+  background: var(--primary-light);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+}
+
+.timer-icon {
+  font-size: 1.4rem;
+}
+
+.timer-label {
+  font-size: 0.92rem;
+  font-weight: 700;
+}
+
+.timer-sub {
+  font-size: 0.76rem;
+  color: var(--text-muted);
+}
+
+/* Start Button Huge */
+.start-action-container {
+  margin-top: 1.75rem;
+}
+
+.start-btn-huge {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 1.15rem 2rem;
+  font-size: 1.2rem;
+  font-weight: 800;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #6366f1 0%, #a855f7 50%, #ec4899 100%);
+  color: #ffffff;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 8px 25px rgba(99, 102, 241, 0.35);
+}
+
+.start-btn-huge:hover {
+  transform: translateY(-2px) scale(1.01);
+  box-shadow: 0 12px 30px rgba(99, 102, 241, 0.45);
+}
+
+.btn-arrow {
+  font-size: 1.3rem;
+  transition: transform 0.25s ease;
+}
+
+.start-btn-huge:hover .btn-arrow {
+  transform: translateX(5px);
+}
+
+/* ==========================================================================
    MOBILE & SMARTPHONE OPTIMIZATIONS (@media max-width: 768px & 480px)
    Does NOT alter desktop / laptop view at all (min-width: 769px)
    ========================================================================== */
@@ -3994,6 +4388,78 @@
   .danger-btn {
     padding: 0.75rem 1rem;
     font-size: 0.95rem;
+  }
+
+  /* 8. Game Picker Mobile Overrides */
+  .game-picker-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    margin: 1rem auto;
+  }
+
+  .game-picker-card {
+    padding: 1.35rem 1.15rem;
+    border-radius: 18px;
+  }
+
+  .game-picker-icon {
+    width: 56px;
+    height: 56px;
+    font-size: 2.2rem;
+    margin-bottom: 0.85rem;
+  }
+
+  .game-picker-title {
+    font-size: 1.3rem;
+  }
+
+  .game-picker-desc {
+    font-size: 0.88rem;
+  }
+
+  .game-picker-arrow {
+    font-size: 0.95rem;
+    padding: 0.6rem 1.25rem;
+  }
+
+  .category-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.6rem;
+  }
+
+  .category-chip {
+    padding: 0.75rem 0.5rem;
+  }
+
+  .cat-icon {
+    font-size: 1.4rem;
+  }
+
+  .cat-name {
+    font-size: 0.82rem;
+  }
+
+  .difficulty-cards-row {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
+  }
+
+  .qcount-cards-row {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.4rem;
+  }
+
+  .qcount-num {
+    font-size: 1.1rem;
+  }
+
+  .qcount-label {
+    font-size: 0.78rem;
+  }
+
+  .start-btn-huge {
+    padding: 0.95rem 1.25rem;
+    font-size: 1.05rem;
   }
 }
 

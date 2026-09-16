@@ -48,7 +48,7 @@ export default function Navbar() {
     return (
         <header className="navbar">
             <div className="navbar-brand">
-                <Link to={isAuthenticated ? "/" : "/login"} className="navbar-logo">
+                <Link to={isAuthenticated ? (isAdmin ? "/admin" : "/") : "/login"} className="navbar-logo">
                     <span className="logo-badge">🧠</span>
                     <span className="logo-text">Quiz<span className="highlight">Spark</span></span>
                 </Link>
@@ -57,19 +57,23 @@ export default function Navbar() {
             {/* Navigation links only visible when logged in */}
             {isAuthenticated && (
                 <nav className="navbar-nav">
-                    <NavLink
-                        to="/"
-                        end
-                        className={({ isActive }) => `nav-link ${isActive ? "active" : ""}`}
-                    >
-                        ⚡ Play
-                    </NavLink>
-                    <NavLink
-                        to="/word-puzzle"
-                        className={({ isActive }) => `nav-link ${isActive ? "active" : ""}`}
-                    >
-                        🔤 Word Puzzle
-                    </NavLink>
+                    {!isAdmin && (
+                        <>
+                            <NavLink
+                                to="/"
+                                end
+                                className={({ isActive }) => `nav-link ${isActive ? "active" : ""}`}
+                            >
+                                ⚡ Play
+                            </NavLink>
+                            <NavLink
+                                to="/word-puzzle"
+                                className={({ isActive }) => `nav-link ${isActive ? "active" : ""}`}
+                            >
+                                🔤 Word Puzzle
+                            </NavLink>
+                        </>
+                    )}
                     <NavLink
                         to="/leaderboard"
                         className={({ isActive }) => `nav-link ${isActive ? "active" : ""}`}

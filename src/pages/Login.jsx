@@ -27,15 +27,9 @@ export default function Login() {
     const handleLoginTypeChange = (type) => {
         setLoginType(type);
         setError(null);
-        if (type === "admin") {
-            setIdentifier("admin");
-            setPassword("admin123");
-            playSound("streak");
-        } else {
-            setIdentifier("");
-            setPassword("");
-            playSound("tick");
-        }
+        setIdentifier("");
+        setPassword("");
+        playSound("tick");
     };
 
     const handleMouseMove = (e) => {
@@ -89,12 +83,16 @@ export default function Login() {
                     throw new Error("Please enter your username/email and password.");
                 }
 
-                await login(identifier.trim(), password);
+                const loggedInUser = await login(identifier.trim(), password);
                 playSound("correct");
                 setSuccessMessage("🎉 Login successful! Opening QuizSpark...");
 
                 setTimeout(() => {
-                    navigate(from === "/login" ? "/" : from, { replace: true });
+                    if (loggedInUser?.role === "admin") {
+                        navigate("/admin", { replace: true });
+                    } else {
+                        navigate(from === "/login" ? "/" : from, { replace: true });
+                    }
                 }, 500);
             }
         } catch (err) {
@@ -119,13 +117,15 @@ export default function Login() {
                     </div>
 
                     <div className="profile-actions">
-                        <button
-                            type="button"
-                            className="primary-btn-large"
-                            onClick={() => navigate("/")}
-                        >
-                            ⚡ Enter Quiz App
-                        </button>
+                        {user.role !== "admin" && (
+                            <button
+                                type="button"
+                                className="primary-btn-large"
+                                onClick={() => navigate("/")}
+                            >
+                                ⚡ Enter Quiz App
+                            </button>
+                        )}
                         {user.role === "admin" && (
                             <button
                                 type="button"
@@ -267,14 +267,17 @@ export default function Login() {
                             }}
                         >
                             <option value="user">👤 Player / Normal User</option>
-                            <option value="admin">👑 Administrator (Auto-Fill Admin Credentials)</option>
+                            <option value="admin">👑 Administrator (Show Admin Credentials)</option>
                         </select>
 
                         {loginType === "admin" && (
                             <div className="alert success-alert" style={{ marginTop: "0.75rem", fontSize: "0.85rem" }}>
-                                🔑 <strong>Admin Auto-Fill Active!</strong> Default credentials set to:
-                                <div style={{ marginTop: "4px", fontFamily: "monospace" }}>
-                                    Username: <strong>admin</strong> | Password: <strong>admin123</strong>
+                                🔑 <strong>Administrator Credentials:</strong>
+                                <div style={{ marginTop: "4px", fontFamily: "monospace", fontWeight: 700 }}>
+                                    Username: <code>admin</code> &nbsp;|&nbsp; Password: <code>admin123</code>
+                                </div>
+                                <div style={{ marginTop: "4px", opacity: 0.85, fontSize: "0.8rem" }}>
+                                    Please enter these credentials into the fields below to log in.
                                 </div>
                             </div>
                         )}

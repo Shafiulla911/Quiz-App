@@ -20,6 +20,17 @@ function ProtectedRoute({ children }) {
   return children;
 }
 
+function PlayerRoute({ children }) {
+  const { isAuthenticated, isAdmin } = useAuth();
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+  if (isAdmin) {
+    return <Navigate to="/admin" replace />;
+  }
+  return children;
+}
+
 function AdminRoute({ children }) {
   const { isAuthenticated, isAdmin } = useAuth();
   if (!isAuthenticated) {
@@ -40,33 +51,33 @@ function AppContent() {
           <Route
             path="/"
             element={
-              <ProtectedRoute>
+              <PlayerRoute>
                 <Home />
-              </ProtectedRoute>
+              </PlayerRoute>
             }
           />
           <Route
             path="/quiz"
             element={
-              <ProtectedRoute>
+              <PlayerRoute>
                 <Quiz />
-              </ProtectedRoute>
+              </PlayerRoute>
             }
           />
           <Route
             path="/word-puzzle"
             element={
-              <ProtectedRoute>
+              <PlayerRoute>
                 <WordPuzzle />
-              </ProtectedRoute>
+              </PlayerRoute>
             }
           />
           <Route
             path="/result"
             element={
-              <ProtectedRoute>
+              <PlayerRoute>
                 <Result />
-              </ProtectedRoute>
+              </PlayerRoute>
             }
           />
           <Route

@@ -323,7 +323,14 @@ export default function WordPuzzle() {
     if (gameState === "config") {
         return (
             <div className="home-container">
-                <div className="hero-section">
+                <button
+                    className="back-to-picker-btn"
+                    onClick={() => { playSound("tick"); navigate("/"); }}
+                >
+                    ← Back to Games
+                </button>
+
+                <div className="hero-section" style={{ paddingTop: "0.5rem" }}>
                     <div className="hero-badge">🔤 Word Anagram & Puzzle Challenge</div>
                     <h1 className="hero-title">
                         Unscramble Words with <span className="hero-gradient">WordSpark</span>
