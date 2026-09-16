@@ -22,15 +22,6 @@ export default function Login() {
     const [error, setError] = useState(null);
     const [successMessage, setSuccessMessage] = useState("");
     const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
-    const [loginType, setLoginType] = useState("user");
-
-    const handleLoginTypeChange = (type) => {
-        setLoginType(type);
-        setError(null);
-        setIdentifier("");
-        setPassword("");
-        playSound("tick");
-    };
 
     const handleMouseMove = (e) => {
         const { clientX, clientY } = e;
@@ -216,7 +207,7 @@ export default function Login() {
                     <p className="auth-subtitle">
                         {isRegisterMode
                             ? "Sign up to create your player account, then log in with your credentials!"
-                            : "Select your account type below to log in."}
+                            : "Enter your username and password below to log in."}
                     </p>
                 </div>
 
@@ -244,45 +235,6 @@ export default function Login() {
                         Sign Up
                     </button>
                 </div>
-
-                {/* Role Selector (Log In Mode Only) */}
-                {!isRegisterMode && (
-                    <div className="form-group" style={{ marginBottom: "1rem" }}>
-                        <label style={{ fontSize: "0.88rem", fontWeight: 700, marginBottom: "0.4rem", display: "block" }}>
-                            Account Type / Role:
-                        </label>
-                        <select
-                            className="form-select"
-                            value={loginType}
-                            onChange={(e) => handleLoginTypeChange(e.target.value)}
-                            style={{
-                                width: "100%",
-                                padding: "0.75rem 1rem",
-                                borderRadius: "12px",
-                                border: "1px solid var(--border-light)",
-                                background: "var(--surface-card-muted)",
-                                color: "var(--text-main)",
-                                fontWeight: 600,
-                                cursor: "pointer"
-                            }}
-                        >
-                            <option value="user">👤 Player / Normal User</option>
-                            <option value="admin">👑 Administrator (Show Admin Credentials)</option>
-                        </select>
-
-                        {loginType === "admin" && (
-                            <div className="alert success-alert" style={{ marginTop: "0.75rem", fontSize: "0.85rem" }}>
-                                🔑 <strong>Administrator Credentials:</strong>
-                                <div style={{ marginTop: "4px", fontFamily: "monospace", fontWeight: 700 }}>
-                                    Username: <code>admin</code> &nbsp;|&nbsp; Password: <code>admin123</code>
-                                </div>
-                                <div style={{ marginTop: "4px", opacity: 0.85, fontSize: "0.8rem" }}>
-                                    Please enter these credentials into the fields below to log in.
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                )}
 
                 {/* Alert Messages */}
                 {error && (
