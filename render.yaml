@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: quizspark-backend
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn --chdir src/backend app:app
+    envVars:
+      - key: PORT
+        value: 5001
