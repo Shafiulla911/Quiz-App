@@ -935,12 +935,22 @@ def generate_ai_word_puzzles(topic="General Knowledge", difficulty="Medium", cou
         "scrambled": scramble_word(item["word"])
     } for item in selected]
 
+def extract_count(count_row):
+    if not count_row:
+        return 0
+    if isinstance(count_row, dict):
+        return list(count_row.values())[0] if count_row else 0
+    try:
+        return count_row[0]
+    except Exception:
+        return 0
+
 def insert_sample_word_puzzles():
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute("SELECT COUNT(*) FROM word_puzzles")
     count_row = cursor.fetchone()
-    count = count_row[0] if isinstance(count_row, (tuple, list)) else (count_row.get("COUNT(*)") if isinstance(count_row, dict) else 0)
+    count = extract_count(count_row)
 
     if count < 5:
         ph = "%s, %s, %s, %s" if USE_MYSQL else "?, ?, ?, ?"
@@ -958,7 +968,7 @@ def insert_sample_questions():
     cursor = conn.cursor()
     cursor.execute("SELECT COUNT(*) FROM questions")
     count_row = cursor.fetchone()
-    count = count_row[0] if isinstance(count_row, (tuple, list)) else (count_row.get("COUNT(*)") if isinstance(count_row, dict) else 0)
+    count = extract_count(count_row)
 
     if count < 10:
         ph = "%s, %s, %s, %s, %s, %s, %s, %s, %s" if USE_MYSQL else "?, ?, ?, ?, ?, ?, ?, ?, ?"

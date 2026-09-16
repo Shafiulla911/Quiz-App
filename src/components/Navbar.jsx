@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { NavLink, Link, useNavigate } from "react-router-dom";
 import { isSoundMuted, toggleSound, playSound } from "../services/sound";
 import { useAuth } from "../context/AuthContext";
@@ -9,6 +9,31 @@ export default function Navbar() {
     const { user, isAuthenticated, isAdmin, logout } = useAuth();
     const [muted, setMuted] = useState(isSoundMuted());
     const [userMenuOpen, setUserMenuOpen] = useState(false);
+    const menuRef = useRef(null);
+
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (menuRef.current && !menuRef.current.contains(event.target)) {
+                setUserMenuOpen(false);
+            }
+        };
+
+        const handleKeyDown = (event) => {
+            if (event.key === "Escape") {
+                setUserMenuOpen(false);
+            }
+        };
+
+        if (userMenuOpen) {
+            document.addEventListener("mousedown", handleClickOutside);
+            document.addEventListener("keydown", handleKeyDown);
+        }
+
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+            document.removeEventListener("keydown", handleKeyDown);
+        };
+    }, [userMenuOpen]);
 
     const handleSoundToggle = () => {
         const isNowOn = toggleSound();
@@ -76,7 +101,7 @@ export default function Navbar() {
 
                 {/* User Auth Section */}
                 {isAuthenticated && user ? (
-                    <div className="user-profile-menu-container">
+                    <div className="user-profile-menu-container" ref={menuRef}>
                         <button
                             type="button"
                             className="user-avatar-pill"

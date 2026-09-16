@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { fetchWordPuzzles, submitScore } from "../services/api";
 import { playSound } from "../services/sound";
 import { useAuth } from "../context/AuthContext";
+import LoadingScreen from "../components/LoadingScreen";
 
 export default function WordPuzzle() {
     const navigate = useNavigate();
@@ -311,6 +312,10 @@ export default function WordPuzzle() {
             setSubmittingScore(false);
         }
     };
+
+    if (loading) {
+        return <LoadingScreen message="Loading word puzzles..." />;
+    }
 
     // =========================================================================
     // CONFIG SCREEN

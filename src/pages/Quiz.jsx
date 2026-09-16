@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import Question from "../components/Questions";
+import LoadingScreen from "../components/LoadingScreen";
 import { fetchQuestions } from "../services/api";
 import { playSound } from "../services/sound";
 
@@ -186,7 +187,7 @@ export default function Quiz() {
     };
 
     if (loading) {
-        return null;
+        return <LoadingScreen message="Preparing quiz questions..." />;
     }
 
     if (error || !questions.length) {
