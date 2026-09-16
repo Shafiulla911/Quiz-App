@@ -1,7 +1,12 @@
 
 import os
 import sqlite3
-import mysql.connector
+
+try:
+    import mysql.connector
+    MYSQL_AVAILABLE = True
+except ImportError:
+    MYSQL_AVAILABLE = False
 
 DB_CONFIG = {
     "host": "localhost",
@@ -13,6 +18,8 @@ DB_CONFIG = {
 SQLITE_PATH = os.path.join(os.path.dirname(__file__), "quiz_app.db")
 
 def is_mysql_available():
+    if not MYSQL_AVAILABLE:
+        return False
     try:
         conn = mysql.connector.connect(**DB_CONFIG)
         conn.close()
