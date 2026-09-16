@@ -692,16 +692,107 @@
   100% { opacity: 1;    transform: scale(1.05) translate(6px, -5px); }
 }
 
-/* Push auth-card above bg layer */
+/* Smokey Glassmorphism Card & Floating Aura Effect */
 .auth-card {
   position: relative;
-  z-index: 1;
+  z-index: 2;
+  width: 100%;
+  max-width: 480px;
 
-  background: var(--surface-card);
-  border: 1px solid var(--border-light);
-  border-radius: 24px;
-  padding: 2.5rem 2.25rem;
-  box-shadow: var(--shadow-lg);
+  /* Frosted Glass Base */
+  background: rgba(15, 23, 42, 0.78);
+  backdrop-filter: blur(28px) saturate(190%);
+  -webkit-backdrop-filter: blur(28px) saturate(190%);
+  
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 28px;
+  padding: 2.75rem 2.25rem;
+  
+  /* Smokey Glow Box Shadow */
+  box-shadow: 
+    0 20px 50px -10px rgba(0, 0, 0, 0.7),
+    0 0 35px -5px rgba(99, 102, 241, 0.35),
+    0 0 80px -15px rgba(168, 85, 247, 0.3),
+    inset 0 1px 1px 0 rgba(255, 255, 255, 0.22);
+  overflow: hidden;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s ease, border-color 0.3s ease;
+}
+
+[data-theme="light"] .auth-card {
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.65);
+  box-shadow: 
+    0 20px 45px -10px rgba(15, 23, 42, 0.12),
+    0 0 40px -5px rgba(99, 102, 241, 0.28),
+    0 0 70px -15px rgba(14, 165, 233, 0.22),
+    inset 0 1px 2px 0 rgba(255, 255, 255, 0.95);
+}
+
+/* Ambient Rotating Smokey Aura Behind Card */
+.auth-card::before {
+  content: "";
+  position: absolute;
+  top: -45%;
+  left: -45%;
+  width: 190%;
+  height: 190%;
+  z-index: -1;
+  background: radial-gradient(
+    circle at 50% 50%,
+    rgba(99, 102, 241, 0.25) 0%,
+    rgba(168, 85, 247, 0.2) 30%,
+    rgba(14, 165, 233, 0.14) 55%,
+    transparent 75%
+  );
+  filter: blur(45px);
+  animation: smokeyAuraDrift 14s ease-in-out infinite alternate;
+  pointer-events: none;
+}
+
+/* Internal Swirling Mist Effect */
+.auth-card::after {
+  content: "";
+  position: absolute;
+  bottom: -35%;
+  right: -35%;
+  width: 170%;
+  height: 170%;
+  z-index: -1;
+  background: radial-gradient(
+    circle at 50% 50%,
+    rgba(236, 72, 153, 0.18) 0%,
+    rgba(99, 102, 241, 0.16) 35%,
+    rgba(56, 189, 248, 0.12) 60%,
+    transparent 80%
+  );
+  filter: blur(50px);
+  animation: smokeyAuraDrift 18s ease-in-out infinite alternate-reverse;
+  pointer-events: none;
+}
+
+@keyframes smokeyAuraDrift {
+  0% {
+    transform: rotate(0deg) translate(0, 0) scale(1);
+    opacity: 0.75;
+  }
+  50% {
+    transform: rotate(180deg) translate(18px, -22px) scale(1.15);
+    opacity: 1;
+  }
+  100% {
+    transform: rotate(360deg) translate(-12px, 16px) scale(0.95);
+    opacity: 0.8;
+  }
+}
+
+.auth-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 
+    0 28px 65px -10px rgba(0, 0, 0, 0.75),
+    0 0 50px -3px rgba(99, 102, 241, 0.5),
+    0 0 95px -8px rgba(168, 85, 247, 0.4),
+    inset 0 1px 1px 0 rgba(255, 255, 255, 0.35);
+  border-color: rgba(129, 140, 248, 0.45);
 }
 
 .auth-header {
