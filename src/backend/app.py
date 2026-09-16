@@ -32,6 +32,16 @@ from models import (
 app = Flask(__name__)
 CORS(app)
 
+# Initialize database tables and seed initial data for Gunicorn / WSGI production
+with app.app_context():
+    try:
+        init_db()
+        insert_sample_questions()
+        insert_sample_word_puzzles()
+        seed_default_admin()
+    except Exception as e:
+        print(f"[QuizSpark] DB Initialization Warning: {e}")
+
 @app.route("/api/auth/register", methods=["POST"])
 def register():
     try:
@@ -323,9 +333,5 @@ def admin_generate_word_puzzles():
         return jsonify({"error": str(e)}), 500
 
 if __name__ == "__main__":
-    init_db()
-    insert_sample_questions()
-    insert_sample_word_puzzles()
-    seed_default_admin()
     print("[QuizSpark] Backend Server running on http://127.0.0.1:5001")
     app.run(debug=True, host="0.0.0.0", port=5001)
