@@ -170,6 +170,7 @@ export default function Login() {
                         transform: `translate3d(${mousePos.x * 1.3}px, ${mousePos.y * 1.3}px, 0)`
                     }}
                 >
+                    <div className="geo-shape shape-center"></div>
                     <div className="geo-shape shape-1"></div>
                     <div className="geo-shape shape-2"></div>
                     <div className="geo-shape shape-3"></div>

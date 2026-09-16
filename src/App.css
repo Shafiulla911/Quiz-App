@@ -550,6 +550,19 @@
   animation-delay: 2s;
 }
 
+.shape-center {
+  width: 300px;
+  height: 300px;
+  top: 50%;
+  left: 50%;
+  margin-top: -150px;
+  margin-left: -150px;
+  border-radius: 40px;
+  transform: rotate(20deg);
+  animation-duration: 18s;
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.4), rgba(236, 72, 153, 0.35));
+}
+
 .shape-5 {
   width: 70px;
   height: 70px;
